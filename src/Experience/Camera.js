@@ -108,6 +108,9 @@ export default class Camera
                 build: () => gsap.timeline({ paused: true })
                     .fromTo(this.instance.position, { x: 0, y: 0, z: 1 }, { x: 0, y: 0, z: 10, duration: 12, ease: 'none' })
                     .fromTo(this.target, { x: 0, y: 0, z: -10}, { x: 0, y: 0, z: 0, duration: 6 }, 0),
+                // loop: true,
+                // position: new THREE.Vector3(0, 0, 10),
+                // target: new THREE.Vector3(0, 0, -10),
             },
             side: {
                 loop: true,
