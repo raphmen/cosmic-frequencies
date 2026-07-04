@@ -296,7 +296,7 @@ export default class Beam
             this.p.curvature = -4.0
             this.p.noiseStrength = 0.1
 
-            this.p.audioLength = 30.0
+            this.p.audioLength = 50.0
             this.p.audioAmplitude = 2.5
             this.p.audioFreqStrength = 1.5
             this.p.audioAlignment = 0.3
