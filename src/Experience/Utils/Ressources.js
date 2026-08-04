@@ -44,31 +44,46 @@ export default class Ressources extends EventEmitter
             {
                 this.loaders.gltfLoader.load(
                     source.path,
-                    (file) => 
+                    (file) =>
                     {
                         this.sourceLoaded(source, file)
+                    },
+                    undefined,
+                    (error) =>
+                    {
+                        this.sourceFailed(source, error)
                     }
                 )
             } else if(source.type === 'texture')
             {
                 this.loaders.textureLoader.load(
                     source.path,
-                    (file) => 
+                    (file) =>
                     {
                         this.sourceLoaded(source, file)
+                    },
+                    undefined,
+                    (error) =>
+                    {
+                        this.sourceFailed(source, error)
                     }
                 )
             } else if(source.type === 'cubeTexture')
             {
                 this.loaders.cubeTextureLoader.load(
                     source.path,
-                    (file) => 
+                    (file) =>
                     {
                         this.sourceLoaded(source, file)
+                    },
+                    undefined,
+                    (error) =>
+                    {
+                        this.sourceFailed(source, error)
                     }
                 )
             }
-            
+
         }
     }
 
@@ -82,5 +97,15 @@ export default class Ressources extends EventEmitter
         {
             this.trigger('loaded')
         }
+    }
+
+    // Keep counting on failure, otherwise 'loaded' never fires and anything waiting
+    // on it (the loading screen) stays up forever. The item is null- loud crash at
+    // use, instead of a silent hang here.
+    sourceFailed(source, error)
+    {
+        console.error(`[ressources] failed to load "${source.name}" (${source.path})`, error)
+
+        this.sourceLoaded(source, null)
     }
 }

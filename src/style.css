@@ -8,6 +8,7 @@ html,
 body
 {
     overflow: hidden;
+    background-color: black;
 }
 
 .webgl
@@ -16,4 +17,98 @@ body
     top: 0;
     left: 0;
     outline: none;
+}
+
+.loading
+{
+    z-index: 9999;
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: black;
+    font-family: ui-monospace, Menlo, monospace;
+    opacity: 1;
+    transition: opacity 1.2s ease;
+}
+
+.loading.is-hidden
+{
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Loops while the assets load, shrinks away once ready. `scale` is animated as its
+   own property so it composes with the `transform: rotate()` of loading-spin */
+.loading__ring
+{
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    border-top-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    animation: loading-spin 1s linear infinite;
+    scale: 1;
+    transition: opacity 0.4s ease, scale 0.4s ease;
+    pointer-events: none;
+    user-select: none;
+}
+
+.loading__enter
+{
+    z-index: 1;
+    position: absolute;
+    opacity: 0;
+    padding: 16px;
+    cursor: pointer;
+    user-select: none;
+    scale: 0;
+    transition: all 0.4s ease;
+}
+
+.loading__enter .content{
+    padding: 8px 0;
+    color: rgba(255, 255, 255, 0.75);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+    font: inherit;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    transition: all 0.4s ease;
+}
+
+.loading__enter:hover .content
+{
+    color: white;
+    border-color: white;
+    padding: 4px 0;
+    transform: translateY(-5px);
+}
+
+.loading.is-ready .loading__ring
+{
+    opacity: 0;
+    scale: 0;
+}
+
+.loading.is-ready .loading__enter
+{
+    opacity: 1;
+    scale: 1;
+    pointer-events: all;
+}
+
+/* Must stay after the .is-ready rule- same specificity, so source order is what
+   makes it win once the click adds .is-hidden on top of .is-ready */
+.loading.is-hidden .loading__enter
+{
+    opacity: 0;
+    scale: 0;
+}
+
+@keyframes loading-spin
+{
+    to { transform: rotate(360deg); }
 }

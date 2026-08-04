@@ -8,6 +8,11 @@
 // Lifecycle hooks:  onLoad · onWarmup · onPlay · onStop · onAudio
 //
 //   const audio = new Analyzer()
+//
+// Manual start (a loading screen owns the start instead of the first gesture):
+//   const audio = new Analyzer( { autoStart: false } )
+//   await audio.prepare()   // resolves when the first track is buffered
+//   audio.start()           // call this from a click handler- it unlocks the audio
 // --------------------------------------------------------------------------------
 
 // Per-track tuning (the knobs a human edits by ear) lives in its own config module.
@@ -16,11 +21,13 @@ import { paramsForTrack } from './TrackTuningConfig.js'
 export default class Analyzer {
 
 	// mode 'auto'|'live'|'receive' · autoTick: live mode self-runs (rAF + SoundPlayer)
-	constructor( { mode = 'auto', fftSize = 512, autoTick = true } = {} ) {
+	// autoStart: false → the scene owns the start (loading screen), call start() on a gesture
+	constructor( { mode = 'auto', fftSize = 512, autoTick = true, autoStart = true } = {} ) {
 		const embedded = window.self !== window.top
 		this.mode = mode === 'auto' ? ( embedded ? 'receive' : 'live' ) : mode
 		this.fftSize = fftSize
 		this.autoTick = autoTick
+		this.autoStart = autoStart
 
 		// the signals- same model whichever mode we're in
 		this.binCount = fftSize / 2
@@ -148,7 +155,9 @@ export default class Analyzer {
 
 		// standalone scenes drive themselves: unlock on first gesture, then run a loop
 		if ( this.autoTick ) {
-			for ( const ev of [ 'pointerdown', 'keydown', 'touchstart' ] ) window.addEventListener( ev, this.gesture )
+			if ( this.autoStart ) {
+				for ( const ev of [ 'pointerdown', 'keydown', 'touchstart' ] ) window.addEventListener( ev, this.gesture )
+			}
 
 			// Fire load & warmup immediately so scene compiles and draws static frame on load
 			this.fire( 'load' )
@@ -158,7 +167,7 @@ export default class Analyzer {
 
 			this.toggleDebug()   // Display by default the sound debug overlay
 
-			this.start()        // in case the context is already running
+			if ( this.autoStart ) this.start()   // in case the context is already running
 			this.last = 0
 			this.raf = requestAnimationFrame( this.tick )
 		}
@@ -171,18 +180,31 @@ export default class Analyzer {
 		this.started = true
 		for ( const ev of [ 'pointerdown', 'keydown', 'touchstart' ] ) window.removeEventListener( ev, this.gesture )
 
+		await this.prepare()       // no-op if a loading screen already did it
+		this.player?.play()
+		this.fire( 'play' )
+	}
+
+	// -- prepare: build the player (playlist + <audio> element) and, when autoStart
+	//    is off, buffer the first track WITHOUT playing it. Await it to know the
+	//    music is ready. Memoised, so a loading screen and start() can both call it.
+	//    Never rejects- a missing track must not block the scene. ------------------
+	prepare = () => {
+		if ( this.mode !== 'live' || ! this.autoTick ) return Promise.resolve()
+		if ( ! this.preparing ) this.preparing = this.loadPlayer()
+		return this.preparing
+	}
+
+	loadPlayer = async () => {
 		// standalone convenience: hand off "choose & play the music" to the player
 		// (lazy import, exactly like toggleDebug() loads AnalyzerDebug)
-		if ( this.autoTick && ! this.player && ! this.playerLoading) {
-			this.playerLoading = true
-			try {
-				const { default: SoundPlayer } = await import( './SoundPlayer.js' )
-				this.player = new SoundPlayer( this )
-			} catch ( err ) {
-				console.error( '[analyzer] failed to load SoundPlayer', err )
-			}
+		try {
+			const { default: SoundPlayer } = await import( './SoundPlayer.js' )
+			this.player = new SoundPlayer( this, { autoplay: this.autoStart } )
+			await this.player.ready
+		} catch ( err ) {
+			console.error( '[analyzer] failed to load SoundPlayer', err )
 		}
-		this.fire( 'play' )
 	}
 
 	// -- source connection- the player/host owns the <audio> element & mic; we own

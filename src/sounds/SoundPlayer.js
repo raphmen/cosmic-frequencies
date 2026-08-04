@@ -17,8 +17,12 @@ import PlayerControl from './PlayerControl.js'
 
 export default class SoundPlayer {
 
-	constructor( analyzer ) {
+	// autoplay: false → only buffer the first track, the scene calls play() later
+	// (loading screen- see Analyzer.prepare()/start())
+	constructor( analyzer, { autoplay = true } = {} ) {
 		this.analyzer = analyzer
+		this.autoplay = autoplay
+		this.playing = false
 		this.tracks = []
 		this.trackNames = []
 		this.trackIndex = 0
@@ -28,10 +32,11 @@ export default class SoundPlayer {
 
 		this.audioEl = new Audio()
 		this.audioEl.crossOrigin = 'anonymous'
+		this.audioEl.preload = 'auto'      // buffer the whole track, so canplaythrough fires
 		this.audioEl.addEventListener( 'ended', () => this.nextTrack() )
 
 		window.addEventListener( 'keydown', this.onKey )
-		this.start()
+		this.ready = this.start()          // await this to know the music is loaded
 	}
 
 	start = async () => {
@@ -40,7 +45,7 @@ export default class SoundPlayer {
 			this.tracks = await response.json()
 			this.trackNames = this.tracks.map( ( t ) => decodeURIComponent( t.split( '/' ).pop().replace( /\.mp3$/i, '' ) ) )
 			this.trackIndex = Math.max( 0, this.trackNames.findIndex( ( n ) => /New Person Same Old Mistakes/i.test( n ) ) )   // Tame Impala plays first
-			if ( this.tracks.length ) this.useTrack( this.tracks[ this.trackIndex ] )
+			if ( this.tracks.length ) await this.useTrack( this.tracks[ this.trackIndex ] )
 			else await this.useMic()
 		} catch ( e ) {
 			console.warn( '[player] failed to fetch tracks.json, using mic', e )
@@ -73,8 +78,31 @@ export default class SoundPlayer {
 			this.trackName = decodeURIComponent( url.split( '/' ).pop().replace( /\.mp3$/i, '' ) )
 			this.analyzer.setTrackId( trackIdFromUrl( url ) )   // pick the per-track tuning
 		}
+		// before the first play: just buffer- the loading screen awaits this
+		if ( ! this.autoplay && ! this.playing ) return this.buffer()
 		return this.audioEl.play()?.catch( () => {} )
 	}
+
+	play = () => {
+		this.playing = true
+		if ( this.source === 'mic' ) return
+		return this.audioEl.play()?.catch( () => {} )
+	}
+
+	// Resolve once the current track is buffered- but never hang: a missing file or
+	// a slow network must not keep a loading screen up forever.
+	buffer = () => new Promise( ( resolve ) => {
+		if ( this.audioEl.readyState >= 4 ) return resolve()
+		const done = () => {
+			clearTimeout( timer )
+			this.audioEl.removeEventListener( 'canplaythrough', done )
+			this.audioEl.removeEventListener( 'error', done )
+			resolve()
+		}
+		const timer = setTimeout( done, 8000 )
+		this.audioEl.addEventListener( 'canplaythrough', done )
+		this.audioEl.addEventListener( 'error', done )
+	} )
 
 	useMic = async () => {
 		if ( ! this.micStream ) {

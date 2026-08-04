@@ -23,7 +23,7 @@ export default class AnalyzerDebug {
 		const dpr = Math.min( 2, window.devicePixelRatio || 1 )
 		this.canvas.width = width * dpr
 		this.canvas.height = height * dpr
-		this.canvas.style.cssText = `position:fixed;right:14px;bottom:60px;z-index:9999;width:${ width }px;height:${ height }px;border:1px solid #2a2a2a;border-radius:8px;background:rgba(8,10,18,.82);backdrop-filter:blur(6px);filter:grayscale(1);opacity:.35;transition:opacity .25s ease,filter .25s ease`
+		this.canvas.style.cssText = `position:fixed;right:14px;bottom:60px;z-index:999;width:${ width }px;height:${ height }px;border:1px solid #2a2a2a;border-radius:8px;background:rgba(8,10,18,.82);backdrop-filter:blur(6px);filter:grayscale(1);opacity:.35;transition:opacity .25s ease,filter .25s ease`
 		this.ctx = this.canvas.getContext( '2d' )
 		this.ctx.scale( dpr, dpr )
 		this.ctx.font = '10px ui-monospace,Menlo,monospace'
