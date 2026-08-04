@@ -9,6 +9,7 @@
 //   const audio = new Analyzer()
 //
 // Keyboard (standalone only):  m = mic/tracks · . / , = next / prev track
+//                              d = hide/show this widget (with the analyzer overlay)
 // --------------------------------------------------------------------------------
 
 import { trackIdFromUrl } from './TrackTuningConfig.js'
@@ -38,7 +39,7 @@ export default class SoundPlayer {
 			const response = await fetch( '/tracks/tracks.json' )
 			this.tracks = await response.json()
 			this.trackNames = this.tracks.map( ( t ) => decodeURIComponent( t.split( '/' ).pop().replace( /\.mp3$/i, '' ) ) )
-			this.trackIndex = Math.max( 0, this.trackNames.findIndex( ( n ) => /digeridoo/i.test( n ) ) )   // Digeridoo plays first
+			this.trackIndex = Math.max( 0, this.trackNames.findIndex( ( n ) => /New Person Same Old Mistakes/i.test( n ) ) )   // Tame Impala plays first
 			if ( this.tracks.length ) this.useTrack( this.tracks[ this.trackIndex ] )
 			else await this.useMic()
 		} catch ( e ) {
@@ -111,6 +112,9 @@ export default class SoundPlayer {
 			case ',':
 			case '<':
 				this.prevTrack()
+				break
+			case 'd':
+				this.control?.toggle()   // same key as the analyzer overlay- they hide together
 				break
 		}
 	}

@@ -86,6 +86,12 @@ export default class PlayerControl {
 	// -- tiny helpers ----------------------------------------------------------
 	setWidth = ( el, pct ) => { el.style.width = `${ pct * 100 }%` }
 
+	// clearing the inline value hands display back to the stylesheet's `flex`
+	toggle = () => {
+		if ( ! this.widget ) return
+		this.widget.style.display = this.widget.style.display === 'none' ? '' : 'none'
+	}
+
 	pctFromEvent = ( e ) => {
 		const rect = this.container.getBoundingClientRect()
 		return Math.max( 0, Math.min( 1, ( e.clientX - rect.left ) / rect.width ) )

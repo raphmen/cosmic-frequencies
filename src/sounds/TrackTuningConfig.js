@@ -74,8 +74,8 @@ export function paramsForTrack( id ) {
 // The player/host pass the result to analyzer.setTrackId(). Unknown → '' (default).
 export function trackIdFromUrl( url ) {
 	const decoded = decodeURIComponent( url )
-	if ( /01-Tame/i.test( decoded ) ) return 'tame'
-	if ( /02-The/i.test( decoded ) ) return 'stones'
-	if ( /03-Digeridoo/i.test( decoded ) ) return 'digeridoo'
+	if ( /New Person Same Old Mistakes/i.test( decoded ) ) return 'tame'
+	if ( /Paint It Black/i.test( decoded ) ) return 'stones'
+	if ( /Digeridoo/i.test( decoded ) ) return 'digeridoo'
 	return ''
 }
