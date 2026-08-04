@@ -1,11 +1,13 @@
 import Experience from "./Experience/Experience.js";
 import Analyzer from '/sounds/Analyzer.js'
 import Loading from './Loading.js'
+import Credits from "./Credits.js";
 
 const canvas = document.querySelector('canvas.webgl')
 
 const audio = new Analyzer({ autoStart: false })   // the loading screen owns the start
 const loading = new Loading()
+const credits = new Credits()
 let experience = null
 
 audio.onLoad(async () => {
@@ -17,7 +19,10 @@ audio.onLoad(async () => {
 })
 
 // The click unlocks the AudioContext, plays the music and fires 'play'
-loading.onEnter(() => audio.start())
+loading.onEnter(() => {
+    audio.start()
+    credits.show()
+})
 
 audio.onWarmup(() => { if (experience) experience.warmup() })
 audio.onPlay(()   => { if (experience) experience.play() })

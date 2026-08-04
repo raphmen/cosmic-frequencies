@@ -19,6 +19,40 @@ body
     outline: none;
 }
 
+.credits
+{
+    z-index: 1;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    margin: 24px 32px;
+    color: rgba(255, 255, 255, 0.75);
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px;
+    text-shadow: #000000 1px 0 10px;
+    transition: all 0.4s ease-in-out;
+}
+
+.credits a
+{
+    color: white;
+    text-decoration: none;
+}
+
+/* The second selector covers the intro animation, while SplitText still has the
+   link text wrapped in inline-block words that the underline can't reach */
+.credits a:hover,
+.credits a:hover .word
+{
+    text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+    .credits {
+       top: 0 
+    }
+}
+
 .loading
 {
     z-index: 9999;
